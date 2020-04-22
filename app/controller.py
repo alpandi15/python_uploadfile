@@ -1,6 +1,6 @@
 import os
 from app import app, services
-from flask import Flask, flash, request, redirect, url_for, render_template
+from flask import Flask, flash, request, render_template
 from flask import jsonify, make_response
 from werkzeug.utils import secure_filename
 
