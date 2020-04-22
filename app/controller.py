@@ -4,17 +4,6 @@ from flask import Flask, flash, request, redirect, url_for, render_template
 from flask import jsonify, make_response
 from werkzeug.utils import secure_filename
 
-UPLOAD_FOLDER = '/home/oem/uploads'
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf'}
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-
-def allowed_file(filename):
-  return '.' in filename and \
-    filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
-
-def get_extension():
-  return 'pdf'
-
 @app.route('/', methods = ['GET'])
 @app.route('/index', methods = ['GET'])
 def index():
@@ -34,7 +23,6 @@ def upload_file():
   if request.method == 'POST':
     try:
       # check if the post request has the file part
-      print("===========MASUK===========")
       if 'file' not in request.files:
         return make_response(jsonify(
             message='No selected file',
@@ -42,23 +30,25 @@ def upload_file():
         ), 422)
 
       # process upload
-      f = request.files['file']
-      if f and allowed_file(f.filename):
+      file = request.files['file']
+      if file and services.allowed_file(file.filename):
         target = app.config['UPLOAD_FOLDER']
+        # check available path upload
         if not services.check_directory(target):
           services.create_directory(target)
-          return 'Tidak ada folder'
-        return 'Ada folder'
-        # filename = secure_filename(f.filename)
-        # pathFile = os.path.join(app.config['UPLOAD_FOLDER'], filename)
-
-        # # os.rename(pathFile, os.path.join(app.config['UPLOAD_FOLDER'], 'gantinama'))
-        # f.save(pathFile)
-        # return make_response(jsonify(
-        #   message='file uploaded successfully',
-        #   success=True,
-        #   data=pathFile
-        # ), 200)
+        
+        # upload fle
+        resUpload = services.upload(file)
+        if resUpload:
+          return make_response(jsonify(
+            message='file uploaded successfully',
+            success=True,
+            data=resUpload
+          ), 200)
+        return make_response(jsonify(
+            message='Upload Error',
+            success=False
+          ), 422)
 
       # if file not allowed
       return make_response(jsonify(
